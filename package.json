@@ -1,0 +1,11 @@
+{
+  "name": "app-shelf",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @app-shelf/api\" \"npm run dev -w @app-shelf/web\"",
+    "build": "npm run build -w @app-shelf/api && npm run build -w @app-shelf/web",
+    "test": "npm run test -w @app-shelf/api && npm run test -w @app-shelf/web"
+  },
+  "devDependencies": { "concurrently": "^9.1.2" }
+}
