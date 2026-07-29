@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { closestCenter, DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { readBackgroundAppearance, readBookmarks, saveBackgroundAppearance, saveBookmarks, type BackgroundAppearance } from './storage';
+import { readBackgroundAppearance, readBookmarks, readOpenInNewTab, saveBackgroundAppearance, saveBookmarks, saveOpenInNewTab, type BackgroundAppearance } from './storage';
 import type { Bookmark } from './types';
 
 type Form = { id?: string; url: string; name: string; iconUrl: string; nameTouched: boolean; iconTouched: boolean };
@@ -10,7 +10,7 @@ const blankForm = (): Form => ({ url: '', name: '', iconUrl: '', nameTouched: fa
 const hostname = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'App'; } };
 const initials = (name: string) => name.trim().slice(0, 1).toUpperCase() || 'A';
 const BACKGROUNDS = [
-  { name: 'Midnight', value: 'radial-gradient(circle at 20% 0%, #312e814d, transparent 30rem), radial-gradient(circle at 90% 20%, #0e749033, transparent 25rem)' },
+  { name: 'Midnight', value: 'radial-gradient(circle at 18% 12%, #4338ca88, transparent 32rem), radial-gradient(circle at 85% 85%, #164e63aa, transparent 30rem), linear-gradient(145deg, #090b1f, #14102a)' },
   { name: 'Aurora', value: 'radial-gradient(circle at 15% 10%, #0f766e, transparent 34rem), radial-gradient(circle at 85% 5%, #4c1d95, transparent 32rem), linear-gradient(135deg, #071a2a, #111827)' },
   { name: 'Sunset', value: 'radial-gradient(circle at 10% 0%, #be123c88, transparent 32rem), radial-gradient(circle at 90% 10%, #c2410c77, transparent 30rem), linear-gradient(135deg, #1e1022, #17121a)' },
   { name: 'Ocean', value: 'radial-gradient(circle at 20% 15%, #0369a1aa, transparent 30rem), radial-gradient(circle at 80% 80%, #155e75aa, transparent 28rem), linear-gradient(145deg, #06141f, #0b1d29)' },
@@ -30,12 +30,12 @@ function AppIcon({ bookmark }: { bookmark: Pick<Bookmark, 'name' | 'url' | 'icon
   return bookmark.iconUrl && !failed ? <img className="h-full w-full object-cover" src={bookmark.iconUrl} alt="" onError={() => setFailed(true)} /> : <span className="grid h-full w-full place-items-center bg-gradient-to-br from-indigo-500 to-violet-700 text-base font-bold text-white">{initials(bookmark.name || hostname(bookmark.url))}</span>;
 }
 
-function TileContent({ bookmark }: { bookmark: Bookmark }) { return <><span className="tile-icon"><AppIcon bookmark={bookmark} /></span><span className="tile-name">{bookmark.name}</span></>; }
+function TileContent({ bookmark }: { bookmark: Bookmark }) { return <><span className="tile-icon"><AppIcon bookmark={bookmark} /></span><span className="tile-name" title={bookmark.name}>{bookmark.name}</span></>; }
 
-function SortableTile({ bookmark, onOpen, onEdit, onDelete }: { bookmark: Bookmark; onOpen: (url: string) => void; onEdit: (bookmark: Bookmark) => void; onDelete: (bookmark: Bookmark) => void }) {
+function SortableTile({ bookmark, openInNewTab, onEdit, onDelete }: { bookmark: Bookmark; openInNewTab: boolean; onEdit: (bookmark: Bookmark) => void; onDelete: (bookmark: Bookmark) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: bookmark.id });
   return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`relative min-w-0 ${isDragging ? 'opacity-25' : ''}`} {...attributes} {...listeners}>
-    <button type="button" className="tile w-full" onClick={() => onOpen(bookmark.url)} aria-label={`Mở ${bookmark.name}`}><TileContent bookmark={bookmark} /></button>
+    <a className="tile w-full" href={bookmark.url} target={openInNewTab ? '_blank' : undefined} rel={openInNewTab ? 'noreferrer' : undefined} aria-label={`Mở ${bookmark.name}`}><TileContent bookmark={bookmark} /></a>
     <div className="tile-actions"><button type="button" onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onEdit(bookmark); }} aria-label={`Chỉnh sửa ${bookmark.name}`}>✎</button><button type="button" className="delete-tile" onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onDelete(bookmark); }} aria-label={`Xóa ${bookmark.name}`}>🗑</button></div>
   </div>;
 }
@@ -68,12 +68,14 @@ export default function App() {
   const [draft, setDraft] = useState<Bookmark[] | null>(null);
   const [editing, setEditing] = useState<Bookmark | null | undefined>(undefined);
   const [settingsOpen, setSettingsOpen] = useState(false); const [activeId, setActiveId] = useState<string | null>(null);
+  const [openInNewTab, setOpenInNewTab] = useState(readOpenInNewTab);
   const [appearance, setAppearance] = useState<BackgroundAppearance>(readBackgroundAppearance);
   const [backgroundDialogOpen, setBackgroundDialogOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const editMode = draft !== null; const visibleBookmarks = draft ?? bookmarks;
   useEffect(() => saveBookmarks(bookmarks), [bookmarks]);
   const changeBackground = (value: BackgroundAppearance) => { try { saveBackgroundAppearance(value); setAppearance(value); } catch { window.alert('Không đủ dung lượng trình duyệt để lưu hình nền này.'); } };
+  const changeOpenInNewTab = (value: boolean) => { saveOpenInNewTab(value); setOpenInNewTab(value); };
   const activeBookmark = useMemo(() => visibleBookmarks.find(item => item.id === activeId) ?? null, [activeId, visibleBookmarks]);
   const updateList = (bookmark: Bookmark) => { if (editMode) setDraft(items => items ? (items.some(item => item.id === bookmark.id) ? items.map(item => item.id === bookmark.id ? bookmark : item) : [...items, bookmark]) : items); else setBookmarks(items => items.some(item => item.id === bookmark.id) ? items.map(item => item.id === bookmark.id ? bookmark : item) : [...items, bookmark]); setEditing(undefined); };
   const remove = (bookmark: Bookmark) => { if (!window.confirm(`Xóa ${bookmark.name}?`)) return; if (editMode) setDraft(items => items?.filter(item => item.id !== bookmark.id) ?? null); else setBookmarks(items => items.filter(item => item.id !== bookmark.id)); setEditing(undefined); };
@@ -83,7 +85,7 @@ export default function App() {
   const backgroundImage = appearance.background ?? BACKGROUNDS[0].value;
   const isUploadedImage = backgroundImage.startsWith('url(');
   return <main className="app-shell min-h-screen px-5 py-8 sm:px-10 lg:px-16" style={{ '--app-text-color': appearance.textColor } as React.CSSProperties}><div className="background-layer" style={{ backgroundImage, backgroundSize: isUploadedImage ? 'cover' : undefined, backgroundPosition: isUploadedImage ? 'center' : undefined, filter: `brightness(${appearance.brightness}) blur(${appearance.blur}px)` }} /><div className="app-content"><header className="mb-10 flex items-end justify-between gap-4"><div><p className="eyebrow">YOUR WEB APPS</p><h1>App Shelf</h1><p className="subtitle">Một nơi gọn gàng cho mọi tool của cậu.</p></div><div className="header-actions"><span className="count">{visibleBookmarks.length} app</span>{editMode && <button className="save-button" onClick={saveEdit}>Save</button>}<button className="settings-button" type="button" aria-label="Mở Settings" onClick={() => setSettingsOpen(open => !open)}>⚙</button></div></header>
-    {settingsOpen && <div className="settings-backdrop" onMouseDown={() => setSettingsOpen(false)}><section className="settings-popup" role="dialog" aria-label="Settings" onMouseDown={event => event.stopPropagation()}><p>Settings</p><button onClick={enterEdit}>Chỉnh sửa danh sách app <span>›</span></button><button onClick={() => { setSettingsOpen(false); setBackgroundDialogOpen(true); }}>Đổi giao diện <span>›</span></button></section></div>}
-    {editMode ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(event: DragStartEvent) => setActiveId(String(event.active.id))} onDragEnd={dragEnd}><SortableContext items={visibleBookmarks.map(item => item.id)}><section className="app-grid edit-grid" aria-label="Chỉnh sửa danh sách ứng dụng">{visibleBookmarks.map(bookmark => <SortableTile key={bookmark.id} bookmark={bookmark} onOpen={url => window.open(url, '_blank', 'noopener,noreferrer')} onEdit={setEditing} onDelete={remove} />)}<button className="add-tile" type="button" onClick={() => setEditing(null)}><span className="plus">+</span><span className="tile-name">Thêm app</span></button></section></SortableContext><DragOverlay>{activeBookmark ? <div className="drag-overlay"><TileContent bookmark={activeBookmark} /></div> : null}</DragOverlay></DndContext> : <section className="app-grid" aria-label="Danh sách ứng dụng">{visibleBookmarks.map(bookmark => <button key={bookmark.id} type="button" className="tile w-full" onClick={() => window.open(bookmark.url, '_blank', 'noopener,noreferrer')} aria-label={`Mở ${bookmark.name}`}><TileContent bookmark={bookmark} /></button>)}<button className="add-tile" type="button" onClick={() => setEditing(null)}><span className="plus">+</span><span className="tile-name">Thêm app</span></button></section>}
+    {settingsOpen && <div className="settings-backdrop" onMouseDown={() => setSettingsOpen(false)}><section className="settings-popup" role="dialog" aria-label="Settings" onMouseDown={event => event.stopPropagation()}><p>Settings</p><button onClick={enterEdit}>Chỉnh sửa danh sách app <span>›</span></button><button onClick={() => { setSettingsOpen(false); setBackgroundDialogOpen(true); }}>Đổi giao diện <span>›</span></button><label className="settings-checkbox">Mở trong tab mới<input type="checkbox" checked={openInNewTab} onChange={event => changeOpenInNewTab(event.target.checked)} /></label></section></div>}
+    {editMode ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(event: DragStartEvent) => setActiveId(String(event.active.id))} onDragEnd={dragEnd}><SortableContext items={visibleBookmarks.map(item => item.id)}><section className="app-grid edit-grid" aria-label="Chỉnh sửa danh sách ứng dụng">{visibleBookmarks.map(bookmark => <SortableTile key={bookmark.id} bookmark={bookmark} openInNewTab={openInNewTab} onEdit={setEditing} onDelete={remove} />)}<button className="add-tile" type="button" onClick={() => setEditing(null)}><span className="plus">+</span><span className="tile-name">Thêm app</span></button></section></SortableContext><DragOverlay>{activeBookmark ? <div className="drag-overlay"><TileContent bookmark={activeBookmark} /></div> : null}</DragOverlay></DndContext> : <section className="app-grid" aria-label="Danh sách ứng dụng">{visibleBookmarks.map(bookmark => <a key={bookmark.id} className="tile w-full" href={bookmark.url} target={openInNewTab ? '_blank' : undefined} rel={openInNewTab ? 'noreferrer' : undefined} aria-label={`Mở ${bookmark.name}`}><TileContent bookmark={bookmark} /></a>)}<button className="add-tile" type="button" onClick={() => setEditing(null)}><span className="plus">+</span><span className="tile-name">Thêm app</span></button></section>}
     {editing !== undefined && <BookmarkModal initial={editing || undefined} onClose={() => setEditing(undefined)} onSave={updateList} onDelete={editing ? () => remove(editing) : undefined} />}{backgroundDialogOpen && <BackgroundDialog appearance={appearance} onClose={() => setBackgroundDialogOpen(false)} onChange={changeBackground} />}</div></main>;
 }

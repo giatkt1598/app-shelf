@@ -2,6 +2,7 @@ import type { Bookmark } from './types';
 const KEY = 'app-shelf.bookmarks.v1';
 const BACKGROUND_KEY = 'app-shelf.background.v1';
 const BACKGROUND_APPEARANCE_KEY = 'app-shelf.background-appearance.v1';
+const OPEN_IN_NEW_TAB_KEY = 'app-shelf.open-in-new-tab.v1';
 export type BackgroundAppearance = { background: string | null; brightness: number; blur: number; textColor: string };
 export function readBookmarks(): Bookmark[] { try { const value = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } }
 export function saveBookmarks(bookmarks: Bookmark[]) { localStorage.setItem(KEY, JSON.stringify(bookmarks)); }
@@ -15,3 +16,5 @@ export function readBackgroundAppearance(): BackgroundAppearance {
   return { background: readBackground(), brightness: 1, blur: 0, textColor: '#f8fafc' };
 }
 export function saveBackgroundAppearance(appearance: BackgroundAppearance) { localStorage.setItem(BACKGROUND_APPEARANCE_KEY, JSON.stringify(appearance)); }
+export function readOpenInNewTab() { return localStorage.getItem(OPEN_IN_NEW_TAB_KEY) !== 'false'; }
+export function saveOpenInNewTab(value: boolean) { localStorage.setItem(OPEN_IN_NEW_TAB_KEY, String(value)); }
