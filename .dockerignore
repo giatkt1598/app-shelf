@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.vite
+**/.vite
+coverage
+**/coverage
+.git
+.gitignore
+Dockerfile*
+docker-compose*.yaml
+npm-debug.log*

@@ -18,7 +18,7 @@ App Shelf is a local-first web app launcher for collecting the browser-based too
 - Add a URL and automatically look up its page title and favicon through the metadata API.
 - Keep bookmarks local to the browser with `localStorage` persistence.
 - Enter Edit mode to reorder apps with drag and drop, edit their details, or remove them before saving the draft.
-- Export all bookmarks to JSON or import JSON with URL-based upserts.
+- Export all bookmarks to `.app-shelf` files or import them with URL-based upserts.
 - Customize the background, brightness, blur, and text color; upload a local background image if desired.
 - Switch between Vietnamese and English, and choose whether apps open in a new tab.
 
@@ -57,6 +57,24 @@ npm run build
 npm test
 ```
 
+## Docker
+
+Run the production-style stack with Nginx serving the frontend and reverse-proxying API requests:
+
+```bash
+docker compose up --build
+```
+
+Open App Shelf at [http://localhost:20678](http://localhost:20678).
+
+To stop the stack, run:
+
+```bash
+docker compose down
+```
+
+Only the web service is exposed on the host. The Express metadata API remains on the internal Compose network and is available through `/api` and `/health`.
+
 ## Project Structure
 
 ```text
@@ -70,4 +88,3 @@ docs/
 ## Metadata API
 
 When a URL field loses focus in the add/edit dialog, the frontend calls the local metadata API. The API fetches the target page, extracts its title and favicon URL, resolves relative icon paths, and returns those values to the form. It accepts HTTP(S) URLs and protects the service from unsupported or unsafe targets while still allowing local tools hosted on `localhost` and loopback addresses.
-
