@@ -27,3 +27,5 @@
 .settings-popup .language-switcher button { display: grid; width: 1.5rem; height: 1.5rem; flex: 0 0 1.5rem; place-items: center; justify-content: center; padding: 0; }
 .settings-popup .language-switcher button:hover { background-color: rgb(255 255 255 / .1); }
 .settings-popup .language-switcher button > span { transform: translateY(-1px); }
+.edit-grid .tile-actions { pointer-events: none; opacity: 0; transition: opacity 150ms ease; }
+.edit-grid > div:hover .tile-actions, .edit-grid > div:focus-within .tile-actions { pointer-events: auto; opacity: 1; }
