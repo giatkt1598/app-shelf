@@ -1,0 +1,73 @@
+# App Shelf
+
+App Shelf is a local-first web app launcher for collecting the browser-based tools you use every day. It presents bookmarks as a clean application grid, so a personal collection of local services, dashboards, and websites is easier to open and manage.
+
+## Screenshots
+
+### App grid
+
+![App Shelf application grid](docs/screenshots/home.png)
+
+### Appearance controls
+
+![App Shelf appearance dialog](docs/screenshots/change-appearance.png)
+
+## Features
+
+- Launch bookmarked web apps from a compact, customizable grid.
+- Add a URL and automatically look up its page title and favicon through the metadata API.
+- Keep bookmarks local to the browser with `localStorage` persistence.
+- Enter Edit mode to reorder apps with drag and drop, edit their details, or remove them before saving the draft.
+- Export all bookmarks to JSON or import JSON with URL-based upserts.
+- Customize the background, brightness, blur, and text color; upload a local background image if desired.
+- Switch between Vietnamese and English, and choose whether apps open in a new tab.
+
+## Tech Stack
+
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS, and `@dnd-kit`.
+- **Backend:** Express and Cheerio for safe URL metadata extraction.
+- **Storage:** Browser `localStorage` for bookmarks and UI preferences.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 24 or later
+- npm 11 or later
+
+### Install and run
+
+```bash
+npm install
+npm run dev
+```
+
+The development command starts both workspace apps:
+
+- The Vite frontend, normally available at `http://localhost:5173`.
+- The metadata API, normally available at `http://localhost:8787`.
+
+## Available Commands
+
+```bash
+# Build the API and frontend for production
+npm run build
+
+# Run API and frontend tests
+npm test
+```
+
+## Project Structure
+
+```text
+apps/
+  api/        Express metadata service
+  web/        React and Tailwind CSS application
+docs/
+  screenshots/ README demo images
+```
+
+## Metadata API
+
+When a URL field loses focus in the add/edit dialog, the frontend calls the local metadata API. The API fetches the target page, extracts its title and favicon URL, resolves relative icon paths, and returns those values to the form. It accepts HTTP(S) URLs and protects the service from unsupported or unsafe targets while still allowing local tools hosted on `localhost` and loopback addresses.
+
