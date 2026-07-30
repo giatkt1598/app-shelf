@@ -75,6 +75,8 @@ docker compose down
 
 Only the web service is exposed on the host. The Express metadata API remains on the internal Compose network and is available through `/api` and `/health`.
 
+When running with Docker, metadata lookups for bookmarks using `localhost` or a loopback address are routed internally through Docker's `host.docker.internal` gateway. The bookmark URL itself is not changed, so it still opens normally in the host browser.
+
 ## Project Structure
 
 ```text

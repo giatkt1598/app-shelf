@@ -8,6 +8,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "8787"
+      LOCALHOST_METADATA_GATEWAY: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     healthcheck:
       test:
