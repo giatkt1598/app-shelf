@@ -3,6 +3,7 @@ import { lookup } from 'node:dns/promises';
 import net from 'node:net';
 
 export type Metadata = { title?: string; faviconUrl?: string };
+export type IconResponse = { body: Buffer; contentType: string };
 
 const isPrivateIp = (ip: string) => {
   if (net.isIP(ip) === 6) {
@@ -88,6 +89,46 @@ async function fetchPage(initial: URL): Promise<{ html: string; url: URL }> {
     }
 
     return { html: await response.text(), url: displayUrl };
+  }
+
+  throw new Error('Quá nhiều redirect.');
+}
+
+/**
+ * Fetches an image while applying the same URL validation and Docker loopback
+ * routing as metadata lookups. Redirects are revalidated to prevent SSRF.
+ */
+export async function fetchIcon(rawUrl: string): Promise<IconResponse> {
+  let displayUrl = await validatePublicUrl(rawUrl);
+
+  for (let redirects = 0; redirects < 4; redirects += 1) {
+    await validatePublicUrl(displayUrl.href);
+    const response = await fetch(resolveMetadataFetchUrl(displayUrl), {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(7000),
+      headers: { 'user-agent': 'AppShelf icon proxy/1.0', accept: 'image/*' },
+    });
+
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const location = response.headers.get('location');
+      if (!location) throw new Error('Redirect icon không hợp lệ.');
+      displayUrl = new URL(location, displayUrl);
+      continue;
+    }
+
+    if (!response.ok) throw new Error(`Không thể tải icon (${response.status}).`);
+
+    const contentType = response.headers.get('content-type')?.split(';')[0].trim().toLowerCase() || '';
+    if (!contentType.startsWith('image/')) throw new Error('URL không trả về hình ảnh.');
+
+    const contentLength = Number(response.headers.get('content-length') || 0);
+    const maxSize = 2 * 1024 * 1024;
+    if (contentLength > maxSize) throw new Error('Icon vượt quá kích thước 2 MB.');
+
+    const body = Buffer.from(await response.arrayBuffer());
+    if (body.byteLength > maxSize) throw new Error('Icon vượt quá kích thước 2 MB.');
+
+    return { body, contentType };
   }
 
   throw new Error('Quá nhiều redirect.');

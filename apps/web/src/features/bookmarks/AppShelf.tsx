@@ -174,6 +174,7 @@ const hostname = (url: string) => {
   }
 };
 const initials = (name: string) => name.trim().slice(0, 1).toUpperCase() || 'A';
+const proxiedIconUrl = (url: string) => `/api/icon?url=${encodeURIComponent(url)}`;
 const BACKGROUNDS = [
   {
     name: 'Midnight',
@@ -213,7 +214,12 @@ function AppIcon({ bookmark }: { bookmark: Pick<Bookmark, 'name' | 'url' | 'icon
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [bookmark.iconUrl]);
   return bookmark.iconUrl && !failed ? (
-    <img className="h-full w-full object-cover" src={bookmark.iconUrl} alt="" onError={() => setFailed(true)} />
+    <img
+      className="h-full w-full object-cover"
+      src={proxiedIconUrl(bookmark.iconUrl)}
+      alt=""
+      onError={() => setFailed(true)}
+    />
   ) : (
     <span className="grid h-full w-full place-items-center bg-gradient-to-br from-indigo-500 to-violet-700 text-base font-bold text-white">
       {initials(bookmark.name || hostname(bookmark.url))}

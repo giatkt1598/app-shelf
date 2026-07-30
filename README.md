@@ -104,6 +104,8 @@ docs/
 
 When a URL field loses focus in the add/edit dialog, the frontend calls the local metadata API. The API fetches the target page, extracts its title and favicon URL, resolves relative icon paths, and returns those values to the form. It accepts HTTP(S) URLs and protects the service from unsupported or unsafe targets while still allowing local tools hosted on `localhost` and loopback addresses.
 
+Favicon images are rendered through `GET /api/icon?url=...`. This same-origin proxy lets App Shelf display icons from services that reject cross-origin requests, while allowing only validated HTTP(S) targets and image responses.
+
 ## Code Quality
 
 The repository uses ESLint with TypeScript, React Hooks, and React Refresh rules. Prettier is the single formatting source of truth; both tools are available through the root npm scripts above.
