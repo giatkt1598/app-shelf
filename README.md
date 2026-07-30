@@ -55,6 +55,13 @@ npm run build
 
 # Run API and frontend tests
 npm test
+
+# Check code quality and formatting
+npm run lint
+npm run format:check
+
+# Apply Prettier formatting
+npm run format
 ```
 
 ## Docker
@@ -81,8 +88,14 @@ When running with Docker, metadata lookups for bookmarks using `localhost` or a 
 
 ```text
 apps/
-  api/        Express metadata service
-  web/        React and Tailwind CSS application
+  api/
+    src/app.ts                 Express app composition
+    src/routes/                HTTP route handlers
+    src/services/              Metadata extraction service
+  web/
+    src/features/bookmarks/    Bookmark UI and feature types
+    src/storage.ts             localStorage persistence
+    src/styles.css             Tailwind component styles
 docs/
   screenshots/ README demo images
 ```
@@ -90,3 +103,11 @@ docs/
 ## Metadata API
 
 When a URL field loses focus in the add/edit dialog, the frontend calls the local metadata API. The API fetches the target page, extracts its title and favicon URL, resolves relative icon paths, and returns those values to the form. It accepts HTTP(S) URLs and protects the service from unsupported or unsafe targets while still allowing local tools hosted on `localhost` and loopback addresses.
+
+## Code Quality
+
+The repository uses ESLint with TypeScript, React Hooks, and React Refresh rules. Prettier is the single formatting source of truth; both tools are available through the root npm scripts above.
+
+## License
+
+Distributed under the [MIT License](LICENSE).

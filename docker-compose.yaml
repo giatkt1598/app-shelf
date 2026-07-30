@@ -4,17 +4,22 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     expose:
-      - "8787"
+      - '8787'
     environment:
       NODE_ENV: production
-      PORT: "8787"
+      PORT: '8787'
       LOCALHOST_METADATA_GATEWAY: host.docker.internal
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     restart: unless-stopped
     healthcheck:
       test:
-        ["CMD", "node", "-e", "fetch('http://localhost:8787/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:8787/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +30,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     ports:
-      - "20678:80"
+      - '20678:80'
     depends_on:
       api:
         condition: service_healthy

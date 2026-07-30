@@ -1,11 +1,27 @@
 {
   "name": "app-shelf",
   "private": true,
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @app-shelf/api\" \"npm run dev -w @app-shelf/web\"",
     "build": "npm run build -w @app-shelf/api && npm run build -w @app-shelf/web",
-    "test": "npm run test -w @app-shelf/api && npm run test -w @app-shelf/web"
+    "test": "npm run test -w @app-shelf/api && npm run test -w @app-shelf/web",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.39.0"
+  }
 }
